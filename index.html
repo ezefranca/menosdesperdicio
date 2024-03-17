@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menos Desperdício</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <!-- AOS Animation -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.css">
+    <!-- Swiper CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/swiper/swiper-bundle.min.css">
+    <!-- Seu Estilo Customizado -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header class="bg-info text-white text-center p-5">
+    <h1>Menos Desperdício</h1>
+    <p>Explorando a história do desperdício alimentar em Portugal</p>
+</header>
+
+<main class="container my-5">
+    <div class="row mb-4">
+        <div class="col">
+            <!-- Seletor de Ano -->
+            <!-- Este é um placeholder. Você pode implementar um seletor de ano com JavaScript -->
+            <h2 class="text-center">Selecione um Ano</h2>
+            <!-- Seletor de Ano Substituído por Lista Horizontal -->
+            <div class="text-center my-4">
+                <h2>Selecione um Ano</h2>
+                <ul class="timeline d-flex justify-content-center flex-wrap" id="year-selector"></ul>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <!-- Resumo do Ano -->
+            <!-- Este é um placeholder. Os detalhes do ano serão preenchidos por JavaScript -->
+            <h3>Resumo do Ano</h3>
+            <div class="lead">
+                <div id="summary"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="news-container" class="swiper-container">
+        <div class="swiper-wrapper">
+            <!-- Cards de Notícias serão inseridos aqui dinamicamente -->
+        </div>
+        <!-- Adiciona Paginação ao Carrossel -->
+        <div class="swiper-pagination"></div>
+    </div>    
+    <div class="row">
+        <div class="col">
+            <!-- Carrossel de Cards -->
+            <div class="swiper-container">
+                <!-- Add Pagination -->
+                <div class="swiper-pagination"></div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<footer class="bg-dark text-white text-center p-3">
+    <p>Dados fornecidos por arquivo.pt</p>
+</footer>
+
+<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/aos@2.3.4/dist/aos.js"></script>
+<script src="https://unpkg.com/swiper/swiper-bundle.min.js"></script>
+<script>
+    AOS.init(); // Inicializa AOS para animações
+    // var swiper = new Swiper('.swiper-container', {
+    //   slidesPerView: 3,
+    //   spaceBetween: 30,
+    //   pagination: {
+    //     el: '.swiper-pagination',
+    //     clickable: true,
+    //   },
+    // });
+</script>
+
+<script>
+    // Carrega os resumos do arquivo JSON
+    function loadSummaries() {
+        fetch('data/summaries.json')
+        .then(response => response.json())
+        .then(data => {
+            // Assume que 'data' é o seu objeto JSON carregado
+            populateYearSelector(Object.keys(data)); // Popula o seletor de ano com os anos disponíveis
+            updateSummary(data, Object.keys(data)[0]); // Atualiza o resumo para o primeiro ano disponível
+    
+            // Quando um novo ano é selecionado, atualiza o resumo
+            document.querySelector('#year-selector').addEventListener('change', function() {
+                updateSummary(data, this.value);
+            });
+        })
+        .catch(error => console.error('Erro ao carregar o arquivo JSON:', error));
+    }
+    
+    // Atualiza o dropdown com os anos disponíveis
+    function populateYearSelector(years) {
+        const selector = document.querySelector('#year-selector');
+        years.forEach(year => {
+            const option = document.createElement('option');
+            option.value = year;
+            option.textContent = year;
+            selector.appendChild(option);
+        });
+    }
+    
+    // Atualiza a interface com o resumo do ano selecionado
+    function updateSummary(data, year) {
+        const summaryText = data[year];
+        document.querySelector('#summary').innerText = summaryText;
+    }
+    
+    // Chama a função loadSummaries quando a página é carregada
+    document.addEventListener('DOMContentLoaded', loadSummaries);
+
+    // Atualiza a interface com o resumo do ano selecionado
+function updateSummary(data, year) {
+    const summaryText = data[year];
+    document.querySelector('#summary').innerText = summaryText;
+    
+    // Atualiza a classe ativa baseada no ano selecionado
+    document.querySelectorAll('.timeline li').forEach(item => {
+        if(item.dataset.year === year) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
+
+    loadEntries(year);
+}
+
+// Atualiza o "seletor" de ano com os anos disponíveis
+function populateYearSelector(years) {
+    const selector = document.querySelector('#year-selector');
+    selector.innerHTML = ''; // Limpa o seletor existente
+    years.forEach(year => {
+        const listItem = document.createElement('li');
+        listItem.textContent = year;
+        listItem.dataset.year = year;
+        listItem.classList.add('timeline-item');
+        listItem.addEventListener('click', function() {
+            updateSummary(window.summariesData, this.dataset.year);
+        });
+        selector.appendChild(listItem);
+    });
+    // Ativa o primeiro ano por padrão
+    if(years.length > 0) {
+        updateSummary(window.summariesData, years[0]);
+        selector.firstChild.classList.add('active');
+    }
+}
+
+// Garante que summariesData está disponível globalmente para ser utilizado nas funções
+window.summariesData = {};
+
+// Carrega os resumos do arquivo JSON
+function loadSummaries() {
+    fetch('data/summaries.json')
+    .then(response => response.json())
+    .then(data => {
+        window.summariesData = data; // Armazena os dados para uso futuro
+        populateYearSelector(Object.keys(data)); // Popula o seletor de ano com os anos disponíveis
+    })
+    .catch(error => console.error('Erro ao carregar o arquivo JSON:', error));
+}
+
+// Atualiza o carrossel com as entradas de notícias para o ano selecionado
+function loadEntries(year) {
+    fetch('data/entries.json') // Ajuste o caminho conforme necessário
+    .then(response => response.json())
+    .then(data => {
+        const entries = data.filter(entry => entry.year.toString() === year); // Assegura que a comparação seja feita corretamente
+        const newsContainer = document.querySelector('#news-container .swiper-wrapper');
+        newsContainer.innerHTML = ''; // Limpa slides existentes
+
+        // Adiciona novos slides
+        entries.forEach(entry => {
+            const slide = document.createElement('div');
+            slide.className = 'swiper-slide';
+            slide.innerHTML = `
+                <div class="card">
+                    <img src="${entry.linkToScreenshot}" class="card-img-top" alt="Imagem">
+                    <div class="card-body">
+                        <h5 class="card-title">${entry.title}</h5>
+                        <p class="card-text">${entry.snippet}</p>
+                        <a href="${entry.originalURL}" target="_blank" class="btn btn-primary">Leia mais</a>
+                    </div>
+                </div>`;
+            newsContainer.appendChild(slide);
+        });
+
+        // Reinicializa o Swiper
+        initializeSwiper();
+    })
+    .catch(error => console.error('Erro ao carregar as entradas:', error));
+}
+
+// Função para inicializar (ou reinicializar) o Swiper
+function initializeSwiper() {
+    if (window.mySwiper) {
+        window.mySwiper.update(); // Atualiza se o Swiper já foi inicializado
+    } else {
+        window.mySwiper = new Swiper('#news-container', { // Inicializa o Swiper
+            slidesPerView: 3,
+            spaceBetween: 30,
+            pagination: {
+                el: '.swiper-pagination',
+                clickable: true,
+            },
+        });
+    }
+}
+
+// Adiciona ouvinte de eventos para os itens de ano no seletor de ano
+document.querySelectorAll('.timeline li').forEach(item => {
+    item.addEventListener('click', function() {
+        const year = parseInt(this.dataset.year);
+        loadEntries(year); // Carrega as entradas para o ano selecionado
+        updateSummary(window.summariesData, year.toString()); // Atualiza o resumo para o ano selecionado
+    });
+});
+
+document.addEventListener('DOMContentLoaded', loadSummaries);
+
+</script>    
+</body>
+</html>
